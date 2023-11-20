@@ -1,5 +1,7 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using CommandLine;
 
@@ -14,7 +16,15 @@ namespace Lnk.Example
                 {
                     var lnkFile = options.InputFileInfo;
                     var lnk = Lnk.LoadFile(lnkFile.FullName);
-                    var serialized = System.Text.Json.JsonSerializer.Serialize<LnkFile>(lnk);
+                    var jsonSerializerOptions = new JsonSerializerOptions
+                    {
+                        WriteIndented = true
+                    };
+                    var serialized = JsonSerializer.Serialize(lnk, jsonSerializerOptions);
+                    if (options.OutputFileInfo != null)
+                    {
+                        File.WriteAllText(options.OutputFileInfo, serialized);
+                    }
                     Console.WriteLine(serialized);
                 }));
         }
@@ -24,6 +34,9 @@ namespace Lnk.Example
         {
             [Option('i', "input", Required = true, HelpText = "The target to be parsed.")]
             public FileInfo InputFileInfo { get; set; }
+
+            [Option('o', "output", Required = false, HelpText = "Output JSON file path.")]
+            public string? OutputFileInfo { get; set; }
         }
     }
 }
